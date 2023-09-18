@@ -1,6 +1,6 @@
-import { Node } from "./Node";
+import { Node } from "./Node.js";
 
-class LinkedList {
+export class LinkedList {
   head = null;
   tail = null;
   constructor(head, tail) {
@@ -28,18 +28,6 @@ class LinkedList {
     this._tail = node;
   }
 
-  append(value) {
-    let node = new Node(value);
-    this.tail.nextNode = node;
-    this.tail = node;
-  }
-
-  prepend(value) {
-    let node = new Node(value, this.head);
-    node.nextNode = this.head;
-    this.head = node;
-  }
-
   size() {
     if (this.head === null) {
       return 0;
@@ -56,21 +44,55 @@ class LinkedList {
     return size;
   }
 
+  append(value) {
+    let node = new Node(value, null);
+
+    if (this.size() === 0) {
+      this.head = node;
+      this.tail = node;
+      
+      return;
+    }
+
+    this.tail.nextNode = node;
+    this.tail = node;
+  }
+
+  prepend(value) {
+    let node = new Node(value);
+
+    if (this.size() === 0) {
+      this.head = node;
+      this.tail = node;
+      node.nextNode = null;
+
+      return;
+    }
+
+    node.nextNode = this.head;
+    this.head = node;
+  }
+
   at(index) {
     if (this.size() === 0) {
       throw new Error('Index not found. LinkedList size is 0.');
     }
 
-    let node = this.head;
+    if (index < 0) {
+      throw new Error('Index cannot be a negative number.');
+    }
 
     if (index === 0) {
       return this.head;
     }
+
+    if (index > this.size()-1) {
+      throw new Error('Index out of bounds.');
+    }
+    
+    let node = this.head;
     
     for (let i = 0; i < index; i += 1) {
-      if (node === null) {
-        throw new Error('Index not found. Index out of bounds.');
-      }
       node = node.nextNode;
     }
     
@@ -81,8 +103,11 @@ class LinkedList {
     if (this.size() === 0) {
       throw new Error('Cannot remove last element. LinkedList is size 0.');
     }
-    const newTail = this.at(this.size() - 1);
+
+    const newTail = this.at(this.size() - 2);
+
     newTail.nextNode = null;
+    this.tail = newTail;
   }
 
   contains(value) {
@@ -93,15 +118,14 @@ class LinkedList {
     let node = this.head;
 
     while (node !== null) {
-      if (node === null) {
-        return false;
-      }
       if (node.value === value) {
         return true;
       }
 
       node = node.nextNode;
     }
+
+    return false;
   }
 
   find(value) {
@@ -112,22 +136,20 @@ class LinkedList {
     let node = this.head;
 
     while (node !== null) {
-
       if (node.value === value) {
         return node;
       }
 
-      if (node.nextNode === null) {
-        return null
-      }
-      
       node = node.nextNode;
     }
+
+    return null;
   }
 
   toString() {
     if (this.size() === 0) {
       console.log('null');
+      return;
     }
 
     let node = this.head;
@@ -146,7 +168,7 @@ class LinkedList {
   }
 
   insertAt(value, index) {
-    if (this.size() === 0) {
+    if (this.size() === 0 && index !== 0) {
       throw new Error('Index not found. LinkedList is size 0.');
     }
 
@@ -154,21 +176,24 @@ class LinkedList {
       throw new Error('Index out of bounds. Index greater than LinkedList size.');
     }
 
-    let node = at(index);
-    let newNode = new Node(value);
-
-    if (index === this.size()) {
-      this.append(value);
-      return;
+    if (index < 0) {
+      throw new Error('Index cannot be a negative number');
     }
     
     if (index === 0) {
-      this.head = newNode;
-      newNode.nextNode = node;
+      this.prepend(value);
       return;
     }
 
-    let prev = at(index-1);
+    if (index === this.size()-1) {
+      this.append(value);
+      return;
+    }
+
+    let node = this.at(index);
+    let newNode = new Node(value);
+    let prev = this.at(index-1);
+
     prev.nextNode = newNode;
     newNode.nextNode = node;
   }
@@ -178,8 +203,12 @@ class LinkedList {
       throw new Error('Index not found. LinkedList is size 0.');
     }
 
-    if (index > this.size()) {
+    if (index > this.size()-1) {
       throw new Error('Index out of bounds. Index greater than LinkedList size.');
+    }
+
+    if (index < 0) {
+      throw new Error('Index out of bounds. Index cannot be a negative number.');
     }
 
     if (index === this.size() - 1) {
@@ -188,15 +217,16 @@ class LinkedList {
     }
 
     if (index === 0) {
-      let node = this.head;
-      this.head = node.nextNode;
-      node.nextNode = null;
+      let oldHead = this.head;
+      this.head = oldHead.nextNode;
+      oldHead.nextNode = null;
 
       return;
     }
 
-    let prev = at(index-1);
-    let node = at(index);
+    let prev = this.at(index-1);
+    let node = this.at(index);
+    
     prev.nextNode = node.nextNode;
     node.nextNode = null;
   }
